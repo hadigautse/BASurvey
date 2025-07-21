@@ -22,8 +22,8 @@
 </head>
 <body class="bg-gray-100 text-gray-800">
 
-    <!-- Main container for all screens -->
-    <div class="max-w-md mx-auto bg-white shadow-lg rounded-lg min-h-screen">
+    <!-- Main container for all screens, configured for SPA layout -->
+    <div class="max-w-md mx-auto bg-white shadow-lg rounded-lg h-screen flex flex-col">
 
         <!-- Screen 0: Install PWA Button -->
         <div id="install-container" class="p-4 hidden">
@@ -31,15 +31,15 @@
         </div>
 
         <!-- Screen 1: Start Survey -->
-        <div id="start-screen" class="w-full h-screen flex flex-col items-center justify-center p-4">
+        <div id="start-screen" class="w-full flex-grow flex flex-col items-center justify-center p-4">
             <div class="text-center">
                 <h1 class="text-3xl font-bold mb-6">Boarding / Alighting Survey</h1>
-                <button id="start-survey-button" class="w-full font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-red-600 text-white hover:bg-red-700 focus:ring-red-500">Start Survey</button>
+                <button id="start-survey-button" class="w-full font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 disabled:bg-red-400 disabled:cursor-wait">Start Survey</button>
             </div>
         </div>
 
         <!-- Screen 2: Metadata Form -->
-        <div id="form-screen" class="w-full h-screen flex flex-col items-center justify-center p-4 hidden">
+        <div id="form-screen" class="w-full flex-grow flex flex-col items-center justify-center p-4 hidden">
             <div class="w-full max-w-sm">
                 <h2 class="text-2xl font-bold mb-4 text-center">Survey Details</h2>
                 <div class="space-y-4">
@@ -61,7 +61,7 @@
         </div>
 
         <!-- Screen 3: Main Data Collection Screen -->
-        <div id="main-screen" class="w-full p-4 hidden">
+        <div id="main-screen" class="w-full p-4 flex-grow flex flex-col hidden">
              <div class="flex flex-col h-full">
                 <!-- Top Half: Action Buttons -->
                 <div class="flex-shrink-0 p-4">
@@ -101,7 +101,7 @@
         </div>
 
         <!-- Screen 4: Stop Data Form -->
-        <div id="stop-form-screen" class="w-full h-screen flex flex-col items-center justify-center p-4 hidden">
+        <div id="stop-form-screen" class="w-full flex-grow flex flex-col items-center justify-center p-4 hidden">
             <div class="w-full max-w-sm">
                 <h2 id="stop-form-title" class="text-2xl font-bold mb-4 text-center"></h2>
                 <div class="space-y-4">
@@ -132,8 +132,6 @@
             let routeName = '';
             let tripName = '';
             let remarks = '';
-            // Suggestion: For a more robust app, save surveyData to localStorage 
-            // to prevent data loss on page refresh.
             let surveyData = [];
             let minorStopCounter = 0;
             let majorStopCounter = 0;
@@ -189,12 +187,8 @@
             // --- SCREEN MANAGEMENT ---
             const showScreen = (screenName) => {
                 Object.values(screens).forEach(screen => screen.classList.add('hidden'));
-                if (screenName === 'main') {
-                    screens.main.classList.remove('hidden');
-                    screens.main.style.display = 'flex';
-                } else if (screens[screenName]) {
+                if (screens[screenName]) {
                     screens[screenName].classList.remove('hidden');
-                    screens[screenName].style.display = 'flex';
                 }
             };
             
@@ -202,19 +196,28 @@
 
             // 1. Start Survey -> Request GPS
             startSurveyButton.addEventListener('click', () => {
+                startSurveyButton.disabled = true;
+                startSurveyButton.textContent = 'Acquiring GPS...';
+
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         (position) => {
                             console.log('Initial GPS permission granted.', position);
+                            startSurveyButton.disabled = false;
+                            startSurveyButton.textContent = 'Start Survey';
                             showScreen('form');
                         },
                         (error) => {
                             console.error('Error getting GPS location:', error);
                             alert('GPS permission is required to start the survey. Please allow location access and try again.');
+                            startSurveyButton.disabled = false;
+                            startSurveyButton.textContent = 'Start Survey';
                         }
                     );
                 } else {
                     alert('Geolocation is not supported by this browser.');
+                    startSurveyButton.disabled = false;
+                    startSurveyButton.textContent = 'Start Survey';
                 }
             });
 
@@ -286,20 +289,37 @@
 
             // 4. Stop Form -> Journey Resumed
             journeyResumedButton.addEventListener('click', () => {
-                // Stop name is now optional, no validation needed.
-                const stopName = document.getElementById('stop-name').value.trim();
+                try {
+                    console.log("--- Journey Resumed Button Clicked ---");
 
-                currentStopData.stopName = stopName;
-                currentStopData.boarding = parseInt(document.getElementById('boarding-count').value, 10);
-                currentStopData.alighting = parseInt(document.getElementById('alighting-count').value, 10);
-                currentStopData.timeOfVehicleResume = new Date();
+                    // Stop name is now optional, no validation needed.
+                    const stopName = document.getElementById('stop-name').value.trim();
 
-                surveyData.push(currentStopData);
-                console.log('Journey resumed. Data captured:', currentStopData);
-                
-                updateTable();
-                showScreen('main');
-                currentStopData = {}; // Reset for next stop
+                    currentStopData.stopName = stopName;
+                    currentStopData.boarding = parseInt(document.getElementById('boarding-count').value, 10);
+                    currentStopData.alighting = parseInt(document.getElementById('alighting-count').value, 10);
+                    currentStopData.timeOfVehicleResume = new Date();
+
+                    console.log("1. Finalizing data for current stop:", currentStopData);
+                    console.log(`2. Survey data array has ${surveyData.length} records before adding new one.`);
+                    
+                    surveyData.push(currentStopData);
+                    
+                    console.log(`3. Survey data array now has ${surveyData.length} records.`);
+                    console.log("4. Calling updateTable()...");
+
+                    updateTable();
+                    
+                    console.log("5. updateTable() finished. Calling showScreen('main')...");
+
+                    showScreen('main');
+                    
+                    console.log("6. Switched to main screen. Resetting currentStopData.");
+                    currentStopData = {}; // Reset for next stop
+                } catch (e) {
+                    console.error("An error occurred in the journeyResumedButton click handler:", e);
+                    alert("An unexpected error occurred. Please check the console for details.");
+                }
             });
             
             // 5. Download CSV
