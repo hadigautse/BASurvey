@@ -14,24 +14,6 @@
         body {
             font-family: 'Inter', sans-serif;
         }
-        .btn {
-            @apply w-full font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2;
-        }
-        .btn-primary {
-            @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
-        }
-        .btn-secondary {
-            @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
-        }
-        .btn-danger {
-            @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
-        }
-        .form-input {
-            @apply mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
-        }
-        .screen {
-            @apply w-full h-screen flex flex-col items-center justify-center p-4;
-        }
         /* Simple transition for screen visibility */
         .hidden {
             display: none;
@@ -43,37 +25,37 @@
     <!-- Main container for all screens -->
     <div class="max-w-md mx-auto bg-white shadow-lg rounded-lg min-h-screen">
 
-        <!-- Screen 0: Install PWA  Button -->
+        <!-- Screen 0: Install PWA Button -->
         <div id="install-container" class="p-4 hidden">
-            <button id="install-button" class="btn btn-primary">Install App</button>
+            <button id="install-button" class="w-full font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500">Install App</button>
         </div>
 
         <!-- Screen 1: Start Survey -->
-        <div id="start-screen" class="screen">
+        <div id="start-screen" class="w-full h-screen flex flex-col items-center justify-center p-4">
             <div class="text-center">
                 <h1 class="text-3xl font-bold mb-6">Boarding / Alighting Survey</h1>
-                <button id="start-survey-button" class="btn btn-danger">Start Survey</button>
+                <button id="start-survey-button" class="w-full font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-red-600 text-white hover:bg-red-700 focus:ring-red-500">Start Survey</button>
             </div>
         </div>
 
         <!-- Screen 2: Metadata Form -->
-        <div id="form-screen" class="screen hidden">
+        <div id="form-screen" class="w-full h-screen flex flex-col items-center justify-center p-4 hidden">
             <div class="w-full max-w-sm">
                 <h2 class="text-2xl font-bold mb-4 text-center">Survey Details</h2>
                 <div class="space-y-4">
                     <div>
                         <label for="route-name" class="block text-sm font-medium text-gray-700">Route Name</label>
-                        <input type="text" id="route-name" class="form-input">
+                        <input type="text" id="route-name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                     <div>
                         <label for="trip-name" class="block text-sm font-medium text-gray-700">Trip Name</label>
-                        <input type="text" id="trip-name" class="form-input">
+                        <input type="text" id="trip-name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                     </div>
                     <div>
                         <label for="remarks" class="block text-sm font-medium text-gray-700">Remarks</label>
-                        <textarea id="remarks" rows="3" class="form-input"></textarea>
+                        <textarea id="remarks" rows="3" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"></textarea>
                     </div>
-                    <button id="done-button" class="btn btn-primary">Done</button>
+                    <button id="done-button" class="w-full font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500">Done</button>
                 </div>
             </div>
         </div>
@@ -85,8 +67,8 @@
                 <div class="flex-shrink-0 p-4">
                     <h2 class="text-xl font-bold text-center mb-4">Record a Stop</h2>
                     <div class="grid grid-cols-2 gap-4">
-                        <button id="minor-stop-button" class="btn btn-secondary">Minor Stop</button>
-                        <button id="major-stop-button" class="btn btn-secondary">Major Stop</button>
+                        <button id="minor-stop-button" class="w-full font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500">Minor Stop</button>
+                        <button id="major-stop-button" class="w-full font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500">Major Stop</button>
                     </div>
                 </div>
 
@@ -119,23 +101,23 @@
         </div>
 
         <!-- Screen 4: Stop Data Form -->
-        <div id="stop-form-screen" class="screen hidden">
+        <div id="stop-form-screen" class="w-full h-screen flex flex-col items-center justify-center p-4 hidden">
             <div class="w-full max-w-sm">
                 <h2 id="stop-form-title" class="text-2xl font-bold mb-4 text-center"></h2>
                 <div class="space-y-4">
                     <div>
                         <label for="stop-name" class="block text-sm font-medium text-gray-700">Stop Name (Optional)</label>
-                        <input type="text" id="stop-name" class="form-input" placeholder="e.g., Main Street Bus Stop">
+                        <input type="text" id="stop-name" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" placeholder="e.g., Main Street Bus Stop">
                     </div>
                     <div>
                         <label for="boarding-count" class="block text-sm font-medium text-gray-700">Boarding</label>
-                        <input type="number" id="boarding-count" value="0" min="0" class="form-input text-center text-lg">
+                        <input type="number" id="boarding-count" value="0" min="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-center text-lg">
                     </div>
                     <div>
                         <label for="alighting-count" class="block text-sm font-medium text-gray-700">Alighting</label>
-                        <input type="number" id="alighting-count" value="0" min="0" class="form-input text-center text-lg">
+                        <input type="number" id="alighting-count" value="0" min="0" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm text-center text-lg">
                     </div>
-                    <button id="journey-resumed-button" class="btn btn-primary">Journey Resumed</button>
+                    <button id="journey-resumed-button" class="w-full font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500">Journey Resumed</button>
                 </div>
             </div>
         </div>
