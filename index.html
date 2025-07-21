@@ -233,36 +233,45 @@
             
             // 3. Main Screen -> Minor/Major Stop (with GPS capture)
             const handleStopClick = (stopType) => {
+                // --- PERFORMANCE FIX: Show UI instantly, then get GPS ---
+
+                // 1. Generate ID and set up initial data
+                let stopId;
+                if (stopType === 'minor') {
+                    minorStopCounter++;
+                    stopId = `min${minorStopCounter}`;
+                } else {
+                    majorStopCounter++;
+                    stopId = `maj${majorStopCounter}`;
+                }
+
+                currentStopData = {
+                    stopId: stopId,
+                    timeOfVehicleStop: new Date(),
+                    coordinates: 'Acquiring...' // Placeholder
+                };
+
+                // 2. Show the form immediately
+                stopFormTitle.textContent = `Stop Details: ${stopId}`;
+                document.getElementById('stop-name').value = '';
+                document.getElementById('boarding-count').value = 0;
+                document.getElementById('alighting-count').value = 0;
+                showScreen('stopForm');
+                console.log(`${stopType} stop initiated. Showing form.`);
+
+                // 3. Get GPS in the background
                 navigator.geolocation.getCurrentPosition(
                     (position) => {
+                        // Success: Update the coordinates
                         const coords = `${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}`;
-                        let stopId;
-
-                        if (stopType === 'minor') {
-                            minorStopCounter++;
-                            stopId = `min${minorStopCounter}`;
-                        } else {
-                            majorStopCounter++;
-                            stopId = `maj${majorStopCounter}`;
-                        }
-
-                        currentStopData = {
-                            stopId: stopId,
-                            timeOfVehicleStop: new Date(),
-                            coordinates: coords
-                        };
-                        
-                        stopFormTitle.textContent = `Stop Details: ${stopId}`;
-                        document.getElementById('stop-name').value = '';
-                        document.getElementById('boarding-count').value = 0;
-                        document.getElementById('alighting-count').value = 0;
-
-                        console.log(`${stopType} stop initiated:`, currentStopData);
-                        showScreen('stopForm');
+                        currentStopData.coordinates = coords;
+                        console.log('GPS acquired:', coords);
                     },
                     (error) => {
-                         console.error('Error getting GPS for stop:', error);
-                         alert('Could not get GPS coordinates for this stop. Please ensure location services are enabled.');
+                        // Failure: Update with an error message
+                        currentStopData.coordinates = 'GPS Error';
+                        console.error('Error getting GPS for stop:', error);
+                        // No alert here, to avoid interrupting the user
                     }
                 );
             };
