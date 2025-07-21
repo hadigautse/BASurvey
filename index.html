@@ -194,6 +194,15 @@
             
             // --- EVENT LISTENERS ---
 
+            // Add a warning before refreshing the page if there is data
+            window.addEventListener('beforeunload', (event) => {
+                if (surveyData.length > 0) {
+                    // Standard way to trigger the browser's confirmation prompt
+                    event.preventDefault();
+                    event.returnValue = '';
+                }
+            });
+
             // 1. Start Survey -> Request GPS
             startSurveyButton.addEventListener('click', () => {
                 startSurveyButton.disabled = true;
