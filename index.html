@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boarding/Alighting Survey</title>
+    <meta name="theme-color" content="#4A90E2">
+    <!-- Link to the Web App Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for better look and feel */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .btn {
+            @apply w-full font-bold py-3 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2;
+        }
+        .btn-primary {
+            @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+        }
+        .btn-secondary {
+            @apply bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500;
+        }
+        .btn-danger {
+            @apply bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+        }
+        .form-input {
+            @apply mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm;
+        }
+        .screen {
+            @apply w-full h-screen flex flex-col items-center justify-center p-4;
+        }
+        /* Simple transition for screen visibility */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Main container for all screens -->
+    <div class="max-w-md mx-auto bg-white shadow-lg rounded-lg min-h-screen">
+
+        <!-- Screen 0: Install PWA Button -->
+        <div id="install-container" class="p-4 hidden">
+            <button id="install-button" class="btn btn-primary">Install App</button>
+        </div>
+
+        <!-- Screen 1: Start Survey -->
+        <div id="start-screen" class="screen">
+            <div class="text-center">
+                <h1 class="text-3xl font-bold mb-6">Boarding / Alighting Survey</h1>
+                <button id="start-survey-button" class="btn btn-danger">Start Survey</button>
+            </div>
+        </div>
+
+        <!-- Screen 2: Metadata Form -->
+        <div id="form-screen" class="screen hidden">
+            <div class="w-full max-w-sm">
+                <h2 class="text-2xl font-bold mb-4 text-center">Survey Details</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="route-name" class="block text-sm font-medium text-gray-700">Route Name</label>
+                        <input type="text" id="route-name" class="form-input">
+                    </div>
+                    <div>
+                        <label for="trip-name" class="block text-sm font-medium text-gray-700">Trip Name</label>
+                        <input type="text" id="trip-name" class="form-input">
+                    </div>
+                    <div>
+                        <label for="remarks" class="block text-sm font-medium text-gray-700">Remarks</label>
+                        <textarea id="remarks" rows="3" class="form-input"></textarea>
+                    </div>
+                    <button id="done-button" class="btn btn-primary">Done</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 3: Main Data Collection Screen -->
+        <div id="main-screen" class="w-full p-4 hidden">
+             <div class="flex flex-col h-full">
+                <!-- Top Half: Action Buttons -->
+                <div class="flex-shrink-0 p-4">
+                    <h2 class="text-xl font-bold text-center mb-4">Record a Stop</h2>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button id="minor-stop-button" class="btn btn-secondary">Minor Stop</button>
+                        <button id="major-stop-button" class="btn btn-secondary">Major Stop</button>
+                    </div>
+                </div>
+
+                <!-- Bottom Half: Table View -->
+                <div class="flex-grow p-4 overflow-auto">
+                    <div class="flex justify-between items-center mb-2">
+                         <h3 class="text-lg font-semibold">Survey Data</h3>
+                         <button id="download-csv-button" class="text-sm bg-green-600 text-white font-bold py-2 px-3 rounded-lg shadow-md hover:bg-green-700">Download CSV</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table id="survey-table" class="min-w-full bg-white border border-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stop ID</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stop Name</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Board</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alight</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Coordinates</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stop Time</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Resume Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="survey-table-body" class="divide-y divide-gray-200">
+                                <!-- Data rows will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+             </div>
+        </div>
+
+        <!-- Screen 4: Stop Data Form -->
+        <div id="stop-form-screen" class="screen hidden">
+            <div class="w-full max-w-sm">
+                <h2 id="stop-form-title" class="text-2xl font-bold mb-4 text-center"></h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="stop-name" class="block text-sm font-medium text-gray-700">Stop Name (Optional)</label>
+                        <input type="text" id="stop-name" class="form-input" placeholder="e.g., Main Street Bus Stop">
+                    </div>
+                    <div>
+                        <label for="boarding-count" class="block text-sm font-medium text-gray-700">Boarding</label>
+                        <input type="number" id="boarding-count" value="0" min="0" class="form-input text-center text-lg">
+                    </div>
+                    <div>
+                        <label for="alighting-count" class="block text-sm font-medium text-gray-700">Alighting</label>
+                        <input type="number" id="alighting-count" value="0" min="0" class="form-input text-center text-lg">
+                    </div>
+                    <button id="journey-resumed-button" class="btn btn-primary">Journey Resumed</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Wait for the DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- STATE MANAGEMENT ---
+            let routeName = '';
+            let tripName = '';
+            let remarks = '';
+            let surveyData = [];
+            let minorStopCounter = 0;
+            let majorStopCounter = 0;
+            let currentStopData = {};
+            let deferredInstallPrompt = null;
+
+            // --- DOM ELEMENT REFERENCES ---
+            const screens = {
+                start: document.getElementById('start-screen'),
+                form: document.getElementById('form-screen'),
+                main: document.getElementById('main-screen'),
+                stopForm: document.getElementById('stop-form-screen'),
+            };
+            const installContainer = document.getElementById('install-container');
+            const installButton = document.getElementById('install-button');
+            const startSurveyButton = document.getElementById('start-survey-button');
+            const doneButton = document.getElementById('done-button');
+            const minorStopButton = document.getElementById('minor-stop-button');
+            const majorStopButton = document.getElementById('major-stop-button');
+            const journeyResumedButton = document.getElementById('journey-resumed-button');
+            const downloadCsvButton = document.getElementById('download-csv-button');
+            const surveyTableBody = document.getElementById('survey-table-body');
+            const stopFormTitle = document.getElementById('stop-form-title');
+
+            // --- PWA INSTALLATION LOGIC ---
+            window.addEventListener('beforeinstallprompt', (event) => {
+                event.preventDefault();
+                deferredInstallPrompt = event;
+                installContainer.classList.remove('hidden');
+                installButton.addEventListener('click', () => {
+                    installContainer.classList.add('hidden');
+                    deferredInstallPrompt.prompt();
+                    deferredInstallPrompt.userChoice.then((choiceResult) => {
+                        if (choiceResult.outcome === 'accepted') {
+                            console.log('User accepted the install prompt');
+                        } else {
+                            console.log('User dismissed the install prompt');
+                        }
+                        deferredInstallPrompt = null;
+                    });
+                });
+            });
+
+            // --- SERVICE WORKER REGISTRATION ---
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then(reg => console.log('ServiceWorker registration successful.', reg))
+                        .catch(err => console.log('ServiceWorker registration failed: ', err));
+                });
+            }
+
+            // --- SCREEN MANAGEMENT ---
+            const showScreen = (screenName) => {
+                Object.values(screens).forEach(screen => screen.classList.add('hidden'));
+                if (screenName === 'main') {
+                    screens.main.classList.remove('hidden');
+                    screens.main.style.display = 'flex';
+                } else if (screens[screenName]) {
+                    screens[screenName].classList.remove('hidden');
+                    screens[screenName].style.display = 'flex';
+                }
+            };
+            
+            // --- EVENT LISTENERS ---
+
+            // 1. Start Survey -> Request GPS
+            startSurveyButton.addEventListener('click', () => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            console.log('Initial GPS permission granted.', position);
+                            showScreen('form');
+                        },
+                        (error) => {
+                            console.error('Error getting GPS location:', error);
+                            alert('GPS permission is required to start the survey. Please allow location access and try again.');
+                        }
+                    );
+                } else {
+                    alert('Geolocation is not supported by this browser.');
+                }
+            });
+
+            // 2. Metadata Form -> Done
+            doneButton.addEventListener('click', () => {
+                routeName = document.getElementById('route-name').value.trim();
+                tripName = document.getElementById('trip-name').value.trim();
+                remarks = document.getElementById('remarks').value.trim();
+
+                if (!routeName || !tripName) {
+                    alert('Route Name and Trip Name are required.');
+                    return;
+                }
+                showScreen('main');
+            });
+            
+            // 3. Main Screen -> Minor/Major Stop (with GPS capture)
+            const handleStopClick = (stopType) => {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const coords = `${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}`;
+                        let stopId;
+
+                        if (stopType === 'minor') {
+                            minorStopCounter++;
+                            stopId = `min${minorStopCounter}`;
+                        } else {
+                            majorStopCounter++;
+                            stopId = `maj${majorStopCounter}`;
+                        }
+
+                        currentStopData = {
+                            stopId: stopId,
+                            timeOfVehicleStop: new Date(),
+                            coordinates: coords
+                        };
+                        
+                        stopFormTitle.textContent = `Stop Details: ${stopId}`;
+                        document.getElementById('stop-name').value = '';
+                        document.getElementById('boarding-count').value = 0;
+                        document.getElementById('alighting-count').value = 0;
+
+                        console.log(`${stopType} stop initiated:`, currentStopData);
+                        showScreen('stopForm');
+                    },
+                    (error) => {
+                         console.error('Error getting GPS for stop:', error);
+                         alert('Could not get GPS coordinates for this stop. Please ensure location services are enabled.');
+                    }
+                );
+            };
+
+            minorStopButton.addEventListener('click', () => handleStopClick('minor'));
+            majorStopButton.addEventListener('click', () => handleStopClick('major'));
+
+            // 4. Stop Form -> Journey Resumed
+            journeyResumedButton.addEventListener('click', () => {
+                // Stop name is now optional, no validation needed.
+                const stopName = document.getElementById('stop-name').value.trim();
+
+                currentStopData.stopName = stopName;
+                currentStopData.boarding = parseInt(document.getElementById('boarding-count').value, 10);
+                currentStopData.alighting = parseInt(document.getElementById('alighting-count').value, 10);
+                currentStopData.timeOfVehicleResume = new Date();
+
+                surveyData.push(currentStopData);
+                console.log('Journey resumed. Data captured:', currentStopData);
+                
+                updateTable();
+                showScreen('main');
+                currentStopData = {}; // Reset for next stop
+            });
+            
+            // 5. Download CSV
+            downloadCsvButton.addEventListener('click', () => {
+                if (surveyData.length === 0) {
+                    alert('No data to download.');
+                    return;
+                }
+
+                const metadataRow = [`Route Name: ${routeName}`, `Trip Name: ${tripName}`, `Remarks: ${remarks}`];
+                const headerRow = ["Stop Id", "Stop Name", "Boarding", "Alighting", "Coordinates", "TimeOfVehicleStop", "TimeOfVehicleResume"];
+                
+                let csvContent = "data:text/csv;charset=utf-8,";
+                csvContent += metadataRow.map(d => `"${d}"`).join(",") + "\r\n";
+                csvContent += headerRow.join(",") + "\r\n";
+
+                surveyData.forEach(row => {
+                    const rowArray = [
+                        row.stopId,
+                        `"${row.stopName}"`,
+                        row.boarding,
+                        row.alighting,
+                        `"${row.coordinates}"`,
+                        row.timeOfVehicleStop.toLocaleTimeString('en-US'),
+                        row.timeOfVehicleResume.toLocaleTimeString('en-US')
+                    ];
+                    csvContent += rowArray.join(",") + "\r\n";
+                });
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `survey_data_${routeName.replace(/ /g,"_")}_${new Date().toISOString().split('T')[0]}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            // --- UTILITY FUNCTIONS ---
+            const updateTable = () => {
+                surveyTableBody.innerHTML = '';
+                
+                surveyData.forEach(data => {
+                    const row = document.createElement('tr');
+                    // Note the new order of columns to match the header
+                    row.innerHTML = `
+                        <td class="px-4 py-2 whitespace-nowrap">${data.stopId}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${data.stopName}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${data.boarding}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${data.alighting}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${data.coordinates}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${data.timeOfVehicleStop.toLocaleTimeString('en-US')}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">${data.timeOfVehicleResume.toLocaleTimeString('en-US')}</td>
+                    `;
+                    surveyTableBody.appendChild(row);
+                });
+            };
+
+            // --- INITIALIZATION ---
+            showScreen('start');
+        });
+    </script>
+</body>
+</html>
+```json
+{
+  "name": "Boarding/Alighting Survey",
+  "short_name": "SurveyApp",
+  "description": "A Progressive Web App for conducting boarding and alighting surveys.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#f3f4f6",
+  "theme_color": "#4A90E2",
+  "icons": [
+    {
+      "src": "[https://placehold.co/192x192/4A90E2/FFFFFF?text=Survey](https://placehold.co/192x192/4A90E2/FFFFFF?text=Survey)",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "[https://placehold.co/512x512/4A90E2/FFFFFF?text=Survey](https://placehold.co/512x512/4A90E2/FFFFFF?text=Survey)",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+```javascript
+// This is the service worker file: sw.js
+
+// Define a cache name
+const CACHE_NAME = 'survey-app-cache-v1';
+// List of files to cache
+const urlsToCache = [
+  '/',
+  '/index.html',
+  'https://cdn.tailwindcss.com/' // Caching the CDN asset
+];
+
+// Install event: fires when the service worker is first installed.
+self.addEventListener('install', event => {
+  // Perform install steps
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache => {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+      })
+  );
+});
+
+// Fetch event: fires for every network request.
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => {
+        // Cache hit - return response from cache
+        if (response) {
+          return response;
+        }
+        // Not in cache - fetch from network
+        return fetch(event.request);
+      }
+    )
+  );
+});
+
+// Activate event: fires when the service worker is activated.
+// This is a good place to clean up old caches.
+self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
